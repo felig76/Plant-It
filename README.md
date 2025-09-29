@@ -1,6 +1,6 @@
 # Plant-It
 ## Comandos para trabajar
-- `git clone https://github.com/RenzoPS/wedo-taskys`: Clona el repo, si no tenes en local
+- `git clone https://github.com/felig76/Plant-It`: Clona el repo, si no tenes en local
 - `git checkout develop`: Te posiciona en la rama develop
 - `git pull origin develop`: Trae los cambios del repo remoto al local en caso de q este ultimo este desactualizado (si no usaste clone)
 - `git checkout -b (nombre de la rama)`: Crea una rama y te posiciona en la misma
@@ -16,7 +16,7 @@
 ## Una vez hecho todos los cambios, etc:
 - `git add .`: Agrega todos los cambios y modificaciones hechas
 - `git commit -m "(mensaje)"`: Para comitear
-- `git remote add origin https://github.com/RenzoPS/wedo-taskys`: Vincula el repo remoto con el local
+- `git remote add origin https://github.com/felig76/Plant-It`: Vincula el repo remoto con el local
 - `git push origin (nombre-rama)`: Pushea los cambios hecho
 
 ## Para mergear la rama con develop (una vez hecho los cambios): 
