@@ -1,7 +1,7 @@
 const { z } = require('zod')
 
 exports.registerSchema = z.object({
-    username: z.string({
+    userName: z.string({
         require_error: 'The username is required'
     }),
 
@@ -33,7 +33,7 @@ exports.loginSchema = z.object({
 })
 
 exports.updateUserNameSchema = z.object({
-    username: z.string({
+    userName: z.string({
         required_error: 'The username is required'
     })
 })
