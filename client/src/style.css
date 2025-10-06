@@ -1,0 +1,273 @@
+:root {
+  --app-max-width: 520px;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Layout más predecible en todas las pantallas */
+*, *::before, *::after { box-sizing: border-box; }
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body { margin: 0; min-width: 320px; min-height: 100vh; background: #f2ffe9; color: #213547; }
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+#app { height: 100%; width: 100%; }
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.vanilla:hover {
+  filter: drop-shadow(0 0 2em #3178c6aa);
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* Preferencias del SO: ajustes mínimos en claro */
+@media (prefers-color-scheme: light) {
+  a:hover { color: #747bff; }
+}
+
+/* ====== App custom styles (mobile-first) ====== */
+html, body, #app { height: 100%; }
+.app-container { min-height: 100dvh; display: flex; flex-direction: column; }
+
+/* Cada pantalla ocupa el alto del viewport y deja espacio para la barra inferior */
+.screen { position: relative; flex: 1; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; padding-bottom: calc(100px + env(safe-area-inset-bottom)); gap: 16px; background: linear-gradient(180deg, #c7f3c0 0%, #eafbd8 60%, #ffffff 100%); background-repeat: no-repeat; background-size: cover; background-position: center; }
+.screen.welcome .plant-hero { font-size: 96px; }
+.screen.welcome .cta { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 360px; }
+
+.btn { padding: 12px 16px; border-radius: 999px; border: none; background: #e6f4ea; color: #2b6d2e; font-weight: 600; }
+.btn.primary { background: #6ed06a; color: #fff; }
+
+.bottom-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; padding-bottom: max(12px, env(safe-area-inset-bottom)); pointer-events: none; }
+.bottom-nav::before { content: ""; position: absolute; inset: -20px 0 0 0; background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.25)); pointer-events: none; }
+.bottom-nav-inner { pointer-events: auto; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; justify-items: center; width: min(var(--app-max-width), 100%); padding: 10px 16px 18px; }
+.nav-btn { width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; background: #000; color: #fff; font-size: 22px; text-decoration: none; box-shadow: 0 8px 18px rgba(0,0,0,.35); border: 2px solid #111; }
+.nav-btn.center { width: 68px; height: 68px; font-size: 26px; }
+.nav-btn.active { outline: 3px solid #6ed06a; }
+
+.form-screen { align-items: center; justify-content: flex-start; padding-top: 48px; }
+.form { display: grid; gap: 12px; width: min(420px, 92%); margin: 0 auto; }
+.form-screen h2 { text-align: center; margin: 6px 0 8px; font-family: 'Fredoka', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+.form label { display: grid; gap: 6px; font-size: 14px; }
+.form input { padding: 10px 12px; border-radius: 10px; border: 1px solid #c9e4cc; }
+.error { color: #b00020; margin: 4px 0; }
+.hint { font-size: 14px; }
+
+/* Mobile tweaks */
+@media (max-width: 400px) {
+  .form-screen { padding-top: 32px; }
+  .form { width: 94%; gap: 10px; }
+  .form-screen h2 { font-size: 22px; margin: 4px 0 6px; }
+  .form input { font-size: 16px; }
+  .form .btn { width: 100%; }
+}
+
+.plant-home { gap: 8px; }
+.plant-name { font-size: 24px; font-weight: 800; background: url('') no-repeat center; color: #2b6d2e; }
+.plant-pot { font-size: 100px; }
+.sensors { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; width: 100%; max-width: 520px; }
+
+.sensor-card { background: #fff; color: #2b2b2b; border-radius: 14px; padding: 12px; display: grid; gap: 6px; box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+.sensor-card .sensor-label { font-size: 12px; color: #2b6d2e; text-transform: uppercase; letter-spacing: .06em; }
+.sensor-card .sensor-value { display: flex; align-items: baseline; gap: 6px; font-size: 20px; font-weight: 700; }
+.sensor-card.warn { outline: 2px solid #ffb020; }
+.sensor-card.danger { outline: 2px solid #ff5b5b; }
+
+.plant-list .grid { width: 100%; max-width: 680px; display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0,1fr)); }
+.plant-card { background: rgba(255,255,255,.8); border: none; border-radius: 16px; padding: 12px; display: grid; gap: 6px; justify-items: center; box-shadow: 0 6px 14px rgba(0,0,0,.06); }
+.plant-card .pot { font-size: 60px; }
+.plant-card .name { font-weight: 700; color: #2b6d2e; }
+
+.settings { align-items: center; justify-content: flex-start; gap: 20px; }
+.settings .profile { display: flex; gap: 12px; align-items: center; }
+.settings .avatar { width: 48px; height: 48px; border-radius: 50%; background: #fff; display: grid; place-items: center; }
+.settings .username { font-weight: 800; }
+.settings .control { display: grid; gap: 8px; }
+
+/* Desktop tweaks */
+@media (min-width: 900px) {
+  .screen { padding: 32px; }
+  .sensors { grid-template-columns: repeat(5, minmax(0,1fr)); }
+  .plant-list .grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
+}
+
+/* ====== Themed screens (mockup-inspired) ====== */
+/* Welcome: sky + hills + flowers at bottom using gradients */
+.screen.welcome {
+  /* Cielo → colina 1 → colina 2 → césped con florecitas */
+  background:
+    /* nubes suaves */
+    radial-gradient(50% 18% at 20% 18%, rgba(255,255,255,.9) 0 60%, transparent 61%),
+    radial-gradient(40% 16% at 70% 12%, rgba(255,255,255,.85) 0 60%, transparent 61%),
+    /* colinas */
+    radial-gradient(120% 50% at 50% 105%, #b8f0a6 0 36%, transparent 37%),
+    radial-gradient(130% 54% at 60% 115%, #94e081 0 30%, transparent 31%),
+    /* pradera */
+    linear-gradient(180deg, #bfeaff 0%, #dff6ff 42%, #b6ee95 43%, #7edd6d 70%, #69cd5b 100%);
+}
+.screen.welcome { justify-content: flex-start; }
+.screen.welcome .logo {
+  font-family: 'Fredoka', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  margin: 6px 0 0;
+  font-weight: 900;
+  color: #0a5c28;
+  text-shadow: 0 2px 0 #ffffff, 0 6px 18px rgba(0,0,0,.18);
+}
+.screen.welcome .plant-hero { margin: 2px 0 4px; filter: drop-shadow(0 8px 18px rgba(0,0,0,.18)); }
+.screen.welcome .cta { gap: 8px; margin-top: 0; width: min(360px, 92%); }
+.screen.welcome .btn.primary { background: linear-gradient(180deg, #6ed06a, #4fb953); }
+.screen.welcome .btn { background: #eaf7ec; }
+.screen.welcome .cta .btn { box-shadow: 0 10px 24px rgba(0,0,0,.18); }
+
+/* Plant home: garden background */
+.screen.plant-home {
+  background:
+    linear-gradient(180deg, #d7f6c8 0%, #f2ffd7 45%, #ffe99b 70%, #ffd86b 100%);
+  position: relative;
+}
+
+/* Wooden hanging sign */
+.sign {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 75%;
+  max-width: 360px;
+  height: 56px;
+  background:
+    repeating-linear-gradient(90deg, #c78543 0 16px, #b9773c 16px 32px);
+  border: 4px solid #8a552d;
+  border-radius: 8px;
+  box-shadow: 0 6px 0 #774620, 0 10px 16px rgba(0,0,0,.25);
+  display: grid; place-items: center;
+  text-transform: uppercase;
+  cursor: pointer;
+  z-index: 5;
+  border: none;
+  padding: 0;
+  background-clip: padding-box;
+}
+.sign::before, .sign::after {
+  content: "";
+  position: absolute;
+  top: -22px;
+  width: 2px; height: 24px;
+  background: #6b4f2a;
+}
+.sign::before { left: 18%; transform: rotate(-10deg); }
+.sign::after { right: 18%; transform: rotate(10deg); }
+.sign-text { font-weight: 900; color: #4b2c16; letter-spacing: 1px; text-shadow: 0 2px 0 rgba(255,255,255,.4); }
+.sign:focus { outline: none; }
+.sign:focus-visible { outline: 3px solid #6ed06a; }
+
+.plant-pot.centered { font-size: 110px; margin: 64px 0 8px; }
+
+/* Plant list: meadow background */
+.screen.plant-list {
+  background:
+    linear-gradient(180deg, #c7ecff 0%, #e6f7ff 55%, #b4f095 56%, #7bd66f 100%);
+}
+/* Settings: forest background + overlay */
+.screen.settings {
+  background:
+    linear-gradient(180deg, #a9d8a2 0%, #7dc67b 40%, #4a9c54 80%);
+}
+.screen.settings::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,0,0,.12), transparent 30%, rgba(0,0,0,.15));
+}
+.screen.settings .btn {
+  width: auto;
+  display: inline-flex;
+  align-self: center;
+  padding: 10px 18px;
+}
+/* Botón de cerrar sesión fijo al final (sobre la nav inferior) */
+.screen.settings .logout-btn {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: clamp(120px, 12vh, 160px); /* distancia segura sobre la bottom-nav y el botón central */
+  z-index: 15;
+}
+/* ====== Modal y FAB ====== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.4);
+  display: grid;
+  place-items: center;
+  z-index: 30;
+}
+.modal {
+  background: #fff;
+  color: #213547;
+  width: min(420px, 92%);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 18px 40px rgba(0,0,0,.25);
+}
+.modal h3 {
+  margin: 0 0 12px;
+}
+.modal .row {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.fab { position: fixed; right: 20px; bottom: 100px; width: 56px; height: 56px; border-radius: 50%; background: #6ed06a; color: #fff; border: 0; font-size: 28px; line-height: 1; box-shadow: 0 10px 24px rgba(0,0,0,.25); z-index: 25; }
+.fab:hover { filter: brightness(0.95); }

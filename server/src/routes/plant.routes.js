@@ -10,3 +10,6 @@ router.post('/create', authRequired, validateSchema(plantSchema), plantControlle
 router.get('/get-plants', authRequired, plantController.getPlants)
 router.get('/get-plant/:plantId', authRequired, plantController.getPlantById)
 router.patch('/update-name/:plantId', authRequired, validateSchema(plantSchema), plantController.updateNamePlant)
+router.delete('/delete-plant/:plantId', authRequired, plantController.deletePlant)
+
+module.exports = router
