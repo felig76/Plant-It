@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+require('dotenv').config()
 
 // Configuración Vite con proxy hacia el backend
 export default defineConfig({
@@ -8,10 +9,10 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: process.env.BACKEND_URL, // Puerto arbitrario para el backend
+        target: process.env.VITE_API_TARGET, // Puerto arbitrario para el backend
         changeOrigin: true,
         secure: false,
       }
     }
-  }
+  } 
 })
