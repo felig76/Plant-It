@@ -8,7 +8,8 @@ const plantSchema = new mongoose.Schema({
     lightExposure: { type: Number, required: true },
     temperature: { type: Number, required: true },
     batteryLevel: { type: Number, required: true },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User'}
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    deviceId: { type: String, required: true }
 }, { timestamps: true })
 
 const Plant = mongoose.model('Plant', plantSchema)

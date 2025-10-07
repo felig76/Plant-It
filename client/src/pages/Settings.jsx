@@ -12,6 +12,8 @@ export default function Settings() {
     setUser(null)
   }
 
+  
+
   return (
     <div className="screen settings">
       <div className="profile">
@@ -26,6 +28,7 @@ export default function Settings() {
           <input type="range" min="0" max="100" defaultValue="50" />
         </label>
       </div>
+      
       <button className="btn logout-btn" onClick={signOut}>Cerrar sesión</button>
     </div>
   )

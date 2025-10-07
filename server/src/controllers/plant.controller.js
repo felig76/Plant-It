@@ -3,9 +3,9 @@ const appError = require('../utils/appError.js')
 const User = require('../models/user.js')
 
 exports.createPlant = async (req, res, next) => {
-    const { name, type, groundHumedity, airHumedity, lightExposure, temperature, batteryLevel, userId } = req.body
+    const { name, type, groundHumedity, airHumedity, lightExposure, temperature, batteryLevel, userId, deviceId } = req.body
     try{
-        const newPlant = new Plant({ name, type, groundHumedity, airHumedity, lightExposure, temperature, batteryLevel, userId })
+        const newPlant = new Plant({ name, type, groundHumedity, airHumedity, lightExposure, temperature, batteryLevel, userId, deviceId })
         const user = await User.findById(userId)
         if (!user) {
             return next(new appError('User not found', 404))
