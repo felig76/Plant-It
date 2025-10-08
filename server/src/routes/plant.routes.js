@@ -6,6 +6,9 @@ const { validateSchema } = require('../middlewares/validator.middleware')
 const { plantSchema } = require('../schemas/plant.schema')
 const { authRequired } = require('../middlewares/validateToken') // Importa el middleware de autenticación
 
+// Public telemetry ingest for ESP32 devices (auth via deviceId header/body)
+router.post('/ingest/:plantId', plantController.ingestTelemetry)
+
 router.post('/create', authRequired, validateSchema(plantSchema), plantController.createPlant)
 router.get('/get-plants', authRequired, plantController.getPlants)
 router.get('/get-plant/:plantId', authRequired, plantController.getPlantById)

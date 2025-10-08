@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import useAuthStore from '../store/useAuthStore.js'
 import usePlantStore from '../store/usePlantStore.js'
 import { createPlant } from '../api/plants.js'
+import { API_BASE } from '../api/axios.js'
 
 export default function CreatePlantModal({ open, onClose }) {
   const user = useAuthStore((s) => s.user)
@@ -58,6 +59,8 @@ export default function CreatePlantModal({ open, onClose }) {
         deviceId: prov.deviceId,
       }
       const { newPlant } = await createPlant(payload)
+      // 3) Enviar plantId y API base a la ESP32 para que pueda publicar
+      await provisionPersistPlant(newPlant._id, prov.deviceId)
       // Guardar planta en store
       addPlant(newPlant)
       // Guardar meta local (color)

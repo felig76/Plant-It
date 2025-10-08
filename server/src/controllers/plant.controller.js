@@ -22,6 +22,52 @@ exports.createPlant = async (req, res, next) => {
     }
 }
 
+// Public ingest endpoint for ESP32 devices.
+// It validates using the plant's stored deviceId and updates latest measurements.
+exports.ingestTelemetry = async (req, res, next) => {
+    const { plantId } = req.params
+    const {
+        groundHumedity,
+        airHumedity,
+        lightExposure,
+        temperature,
+        batteryLevel,
+        deviceId: bodyDeviceId,
+    } = req.body || {}
+
+    try {
+        const plant = await Plant.findById(plantId)
+        if (!plant) {
+            throw new appError('Plant not found', 404)
+        }
+
+        // Prefer header, fallback to body
+        const providedDeviceId = req.headers['x-device-id'] || bodyDeviceId
+        if (!providedDeviceId || providedDeviceId !== plant.deviceId) {
+            throw new appError('Invalid deviceId', 401)
+        }
+
+        if (
+            [groundHumedity, airHumedity, lightExposure, temperature, batteryLevel].some(
+                (v) => typeof v !== 'number'
+            )
+        ) {
+            throw new appError('Invalid telemetry payload', 400)
+        }
+
+        plant.groundHumedity = groundHumedity
+        plant.airHumedity = airHumedity
+        plant.lightExposure = lightExposure
+        plant.temperature = temperature
+        plant.batteryLevel = batteryLevel
+        await plant.save()
+
+        res.status(200).json({ success: true })
+    } catch (e) {
+        next(e)
+    }
+}
+
 exports.getPlants = async (req, res, next) => {
     const userId = req.user.id
     try{
