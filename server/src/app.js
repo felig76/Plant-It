@@ -15,26 +15,34 @@ connectDB();
 const app = express();
 
 const allowedOrigins = [
-  'https://plant-it-l-kb81.onrender.com',
-  'http://localhost:5173' // opcional, para pruebas locales
+  'https://plant-it-1-kb8j.onrender.com', // tu frontend
+  'http://localhost:5173' // opcional para desarrollo
 ];
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, origin);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
 }));
 
-// Middleware
+//Middlewares
 app.use(express.json());
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(cookieParser());
 
-// Rutas
+//Rutas
 app.use('/api/users', userRoutes);
 app.use('/api/plants', plantRoutes);
 
-// Middleware de errores
+//Manejo de errores
 app.use(errorHandler);
 
 module.exports = app;
