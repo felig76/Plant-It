@@ -5,6 +5,9 @@ const morgan = require('morgan')
 const helmet = require('helmet')
 const cookieParser = require('cookie-parser')
 const errorHandler = require('./middlewares/errorHandler')
+const allowedOrigins = [
+  'https://plant-it-l-kb81.onrender.com', // tu frontend en Render
+];
 require('dotenv').config()
 
 // Import rutas
@@ -19,7 +22,10 @@ const connectDB = require('./config/db')
 connectDB()
 
 // Middleware
-app.use(cors())  // Permite solicitudes de diferentes dominios
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true, // permite enviar cookies o encabezados de autorización
+}));
 app.use(express.json())  // Para analizar el cuerpo de las solicitudes JSON
 app.use(helmet())  // Protege la aplicación de ataques comunes
 app.use(morgan('dev'))  // Registra las solicitudes HTTP en la consola
