@@ -93,16 +93,20 @@ export default function CreatePlantModal({ open, onClose }) {
     try {
       setBleMsg('Buscando dispositivo BLE...')
       const device = await navigator.bluetooth.requestDevice({
-        filters: [{ name: BLE.deviceName }],
+        acceptAllDevices: true,
         optionalServices: [BLE.service],
       })
+      setBleMsg(`Dispositivo seleccionado: ${device.name || device.id || 'Desconocido'}`)
       const server = await device.gatt.connect()
-      const service = await server.getPrimaryService(BLE.service)
+      let service
+      try {
+        service = await server.getPrimaryService(BLE.service)
+      } catch (e) {
+        setBleMsg('El dispositivo elegido no expone el servicio esperado. Elegí la ESP32 (ESP32-Setup) y probá de nuevo.')
+        try { await server.disconnect() } catch {}
+        return { ok: false }
+      }
       const writer = await service.getCharacteristic(BLE.writeChar)
-
-      const json = JSON.stringify({ ssid, password })
-      const encoder = new TextEncoder()
-      await writer.writeValue(encoder.encode(json))
 
       // Intentar verificar estado leyendo/escuchando characteristic de estado
       setBleMsg('Enviando credenciales. Verificando conexión WiFi...')
@@ -110,7 +114,7 @@ export default function CreatePlantModal({ open, onClose }) {
       try {
         const statusChar = await service.getCharacteristic(BLE.statusChar)
 
-        // Preferir notificaciones si están disponibles
+        // Preferir notificaciones si están disponibles. Suscribir ANTES de escribir.
         if (statusChar.properties.notify) {
           connected = await new Promise(async (resolve) => {
             const onMsg = (e) => {
@@ -130,15 +134,26 @@ export default function CreatePlantModal({ open, onClose }) {
             }
             statusChar.addEventListener('characteristicvaluechanged', onMsg)
             await statusChar.startNotifications()
-            // timeout 15s
+            // Pequeña espera para asegurar suscripción
+            await new Promise(r => setTimeout(r, 50))
+
+            // Ahora escribir credenciales
+            const json = JSON.stringify({ ssid, password })
+            const encoder = new TextEncoder()
+            await writer.writeValue(encoder.encode(json))
+
+            // timeout 30s
             setTimeout(() => {
               try { statusChar.removeEventListener('characteristicvaluechanged', onMsg) } catch {}
               resolve(false)
-            }, 15000)
+            }, 30000)
           })
         } else {
-          // Polling simple si no hay notify
-          for (let i = 0; i < 10 && !connected; i++) {
+          // Si no hay notify: escribir y hacer polling
+          const json = JSON.stringify({ ssid, password })
+          const encoder = new TextEncoder()
+          await writer.writeValue(encoder.encode(json))
+          for (let i = 0; i < 30 && !connected; i++) {
             const v = await statusChar.readValue()
             const txt = new TextDecoder().decode(v)
             try {
@@ -152,6 +167,12 @@ export default function CreatePlantModal({ open, onClose }) {
         }
       } catch {
         // Si el firmware aún no expone la characteristic de estado
+        // Escribir igualmente y esperar un poco por si conecta
+        try {
+          const json = JSON.stringify({ ssid, password })
+          const encoder = new TextEncoder()
+          await writer.writeValue(encoder.encode(json))
+        } catch {}
         setBleMsg('No se pudo verificar el estado. Asegurate de tener firmware con characteristic de estado.')
       }
 
