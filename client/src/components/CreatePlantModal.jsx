@@ -40,42 +40,11 @@ export default function CreatePlantModal({ open, onClose }) {
     setLoading(true)
     setError('')
     try {
-      // 1) Provisionar WiFi en la ESP32 antes de crear la planta
-      const prov = await provisionEsp32Wifi()
-      if (!prov?.ok) {
-        throw new Error('No se pudo provisionar la ESP32. Verifica el WiFi o vuelve a intentar.')
-      }
+      // 1) Conectar BLE (obtener deviceId y canales)
+      const ble = await connectBle()
+      if (!ble?.ok) throw new Error('No se pudo conectar por BLE con la ESP32.')
 
-  // Persistir en la ESP32 el plantId y la URL base del backend para que publique telemetría.
-  // Implementación BLE: re-conecta, obtiene el mismo service y characteristic de escritura y envía JSON.
-  async function provisionPersistPlant(plantId, deviceId) {
-    if (!supported) {
-      setBleMsg('Bluetooth Web no disponible para persistir configuración.')
-      return { ok: false }
-    }
-    try {
-      setBleMsg('Conectando por BLE para guardar configuración...')
-      const device = await navigator.bluetooth.requestDevice({
-        acceptAllDevices: true,
-        optionalServices: [BLE.service],
-      })
-      const server = await device.gatt.connect()
-      const service = await server.getPrimaryService(BLE.service)
-      const writer = await service.getCharacteristic(BLE.writeChar)
-
-      const json = JSON.stringify({ plantId, deviceId, apiBase: API_BASE })
-      const encoder = new TextEncoder()
-      await writer.writeValue(encoder.encode(json))
-
-      try { await server.disconnect() } catch {}
-      setBleMsg('Configuración enviada a la ESP32.')
-      return { ok: true }
-    } catch (e) {
-      setBleMsg('No se pudo enviar configuración a la ESP32: ' + (e?.message || String(e)))
-      return { ok: false }
-    }
-  }
-      // 2) Datos ficticios de sensores para crear la planta
+      // 2) Crear planta en backend con deviceId del BLE
       const payload = {
         name,
         type,
@@ -85,14 +54,20 @@ export default function CreatePlantModal({ open, onClose }) {
         temperature: Math.floor(15 + Math.random() * 15),
         batteryLevel: Math.floor(60 + Math.random() * 40),
         userId: user?.id,
-        deviceId: prov.deviceId,
+        deviceId: ble.deviceId,
       }
       const { newPlant } = await createPlant(payload)
-      // 3) Enviar plantId y API base a la ESP32 para que pueda publicar (reutiliza conexión BLE si está disponible)
-      await provisionPersistPlant(newPlant._id, prov.deviceId, prov)
-      // Guardar planta en store
+
+      // 3) Enviar credenciales WiFi y esperar confirmación
+      const wifiOk = await sendWifiOverBle(ble, ssid, password)
+      if (!wifiOk) throw new Error('La ESP32 no confirmó conexión WiFi.')
+
+      // 4) Enviar plantId y apiBase para persistir configuración
+      const cfgOk = await sendConfigOverBle(ble, newPlant._id, ble.deviceId)
+      if (!cfgOk) throw new Error('No se pudo enviar configuración a la ESP32.')
+
+      // 5) Guardar en estado y cerrar
       addPlant(newPlant)
-      // Guardar meta local (color)
       setMeta(newPlant._id, { potColor: color, type })
       onClose()
     } catch (err) {
@@ -110,120 +85,66 @@ export default function CreatePlantModal({ open, onClose }) {
     statusChar: 'abcdef02-1234-5678-1234-56789abcdef0', // debe existir en el firmware
   }
 
-  async function provisionEsp32Wifi() {
+  async function connectBle() {
     if (!supported) {
       setBleMsg('Bluetooth Web no disponible. Usa HTTPS o localhost en Chrome/Edge.')
       return { ok: false }
     }
-    if (!ssid) {
-      setBleMsg('Ingresá el SSID de tu red WiFi.')
-      return { ok: false }
+    setBleMsg('Buscando dispositivo BLE...')
+    const device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: [BLE.service],
+    })
+    setBleMsg(`Dispositivo seleccionado: ${device.name || device.id || 'Desconocido'}`)
+    const server = await device.gatt.connect()
+    const service = await server.getPrimaryService(BLE.service)
+    const writer = await service.getCharacteristic(BLE.writeChar)
+    let statusChar = null
+    try { statusChar = await service.getCharacteristic(BLE.statusChar) } catch {}
+    return {
+      ok: true,
+      deviceId: device?.id || device?.name || null,
+      device,
+      server,
+      service,
+      writer,
+      statusChar,
     }
+  }
+
+  async function sendWifiOverBle(ble, ssid, password) {
     try {
-      setBleMsg('Buscando dispositivo BLE...')
-      const device = await navigator.bluetooth.requestDevice({
-        acceptAllDevices: true,
-        optionalServices: [BLE.service],
-      })
-      setBleMsg(`Dispositivo seleccionado: ${device.name || device.id || 'Desconocido'}`)
-      const server = await device.gatt.connect()
-      let service
-      try {
-        service = await server.getPrimaryService(BLE.service)
-      } catch (e) {
-        setBleMsg('El dispositivo elegido no expone el servicio esperado. Elegí la ESP32 (ESP32-Setup) y probá de nuevo.')
-        try { await server.disconnect() } catch {}
-        return { ok: false }
-      }
-      const writer = await service.getCharacteristic(BLE.writeChar)
-
-      // Intentar verificar estado leyendo/escuchando characteristic de estado
-      setBleMsg('Enviando credenciales. Verificando conexión WiFi...')
-      let connected = false
-      try {
-        const statusChar = await service.getCharacteristic(BLE.statusChar)
-
-        // Preferir notificaciones si están disponibles. Suscribir ANTES de escribir.
-        if (statusChar.properties.notify) {
-          connected = await new Promise(async (resolve) => {
-            const onMsg = (e) => {
-              const v = new TextDecoder().decode(e.target.value)
-              try {
-                const data = JSON.parse(v)
-                if (data?.connected === true) {
-                  statusChar.removeEventListener('characteristicvaluechanged', onMsg)
-                  resolve(true)
-                }
-              } catch {
-                if (v.trim().toUpperCase() === 'OK') {
-                  statusChar.removeEventListener('characteristicvaluechanged', onMsg)
-                  resolve(true)
-                }
-              }
-            }
-            statusChar.addEventListener('characteristicvaluechanged', onMsg)
-            await statusChar.startNotifications()
-            // Pequeña espera para asegurar suscripción
-            await new Promise(r => setTimeout(r, 50))
-
-            // Ahora escribir credenciales
-            const json = JSON.stringify({ ssid, password })
-            const encoder = new TextEncoder()
-            await writer.writeValue(encoder.encode(json))
-
-            // timeout 30s
-            setTimeout(() => {
-              try { statusChar.removeEventListener('characteristicvaluechanged', onMsg) } catch {}
-              resolve(false)
-            }, 30000)
-          })
-        } else {
-          // Si no hay notify: escribir y hacer polling
-          const json = JSON.stringify({ ssid, password })
-          const encoder = new TextEncoder()
-          await writer.writeValue(encoder.encode(json))
-          for (let i = 0; i < 30 && !connected; i++) {
-            const v = await statusChar.readValue()
-            const txt = new TextDecoder().decode(v)
-            try {
-              const data = JSON.parse(txt)
-              if (data?.connected === true) connected = true
-            } catch {
-              if (txt.trim().toUpperCase() === 'OK') connected = true
-            }
-            if (!connected) await new Promise(r => setTimeout(r, 1000))
-          }
+      if (!ble?.writer) return false
+      if (!ssid) return false
+      setBleMsg('Enviando credenciales WiFi...')
+      const encoder = new TextEncoder()
+      const json = JSON.stringify({ ssid, password })
+      // Suscribir notificaciones si existe statusChar
+      let resolved = false
+      if (ble.statusChar && ble.statusChar.properties?.notify) {
+        await ble.statusChar.startNotifications()
+        const onMsg = (e) => {
+          const v = new TextDecoder().decode(e.target.value)
+          try { if (JSON.parse(v)?.connected === true) { resolved = true; ble.statusChar.removeEventListener('characteristicvaluechanged', onMsg) } }
+          catch { if (v.trim().toUpperCase() === 'OK') { resolved = true; ble.statusChar.removeEventListener('characteristicvaluechanged', onMsg) } }
         }
-      } catch {
-        // Si el firmware aún no expone la characteristic de estado
-        // Escribir igualmente y esperar un poco por si conecta
-        try {
-          const json = JSON.stringify({ ssid, password })
-          const encoder = new TextEncoder()
-          await writer.writeValue(encoder.encode(json))
-        } catch {}
-        setBleMsg('No se pudo verificar el estado. Asegurate de tener firmware con characteristic de estado.')
+        ble.statusChar.addEventListener('characteristicvaluechanged', onMsg)
       }
-
-      // No desconectamos aún: si conectó, reusaremos la conexión para enviar config
-      if (connected) {
-        setBleMsg('ESP32 conectada al WiFi correctamente.')
-        return {
-          ok: true,
-          deviceId: device?.id || device?.name || null,
-          device,
-          server,
-          service,
-          writer,
+      await ble.writer.writeValue(encoder.encode(json))
+      // Esperar hasta 30s si hay statusChar
+      if (ble.statusChar) {
+        const start = Date.now()
+        while (!resolved && Date.now() - start < 30000) {
+          await new Promise(r => setTimeout(r, 300))
         }
       } else {
-        try { await server.disconnect() } catch {}
-        setBleMsg('La ESP32 no confirmó conexión WiFi.')
-        return { ok: false }
+        await new Promise(r => setTimeout(r, 1500))
       }
-    } catch (err) {
-      setBleMsg('Error BLE: ' + (err?.message || String(err)))
-      return { ok: false }
+      if (!resolved && ble.statusChar) return false
+      setBleMsg('ESP32 conectada al WiFi correctamente.')
+      return true
+    } catch {
+      return false
     }
   }
 

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { API_BASE } from '../api/axios.js'
 import usePlantStore from '../store/usePlantStore.js'
 import SensorCard from '../components/SensorCard.jsx'
 import PlantAvatar from '../components/PlantAvatar.jsx'
@@ -10,6 +11,53 @@ export default function PlantHome() {
   const meta = usePlantStore((s) => s.meta)
   const [openInfo, setOpenInfo] = useState(false)
   const [openCreate, setOpenCreate] = useState(false)
+  const [bleMsg, setBleMsg] = useState('')
+
+  // Helpers BLE (mismos UUIDs que en el modal)
+  const BLE = {
+    service: '12345678-1234-5678-1234-56789abcdef0',
+    writeChar: 'abcdef01-1234-5678-1234-56789abcdef0',
+  }
+
+  async function connectBle() {
+    try {
+      setBleMsg('Buscando dispositivo BLE...')
+      const device = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: [BLE.service],
+      })
+      const server = await device.gatt.connect()
+      const service = await server.getPrimaryService(BLE.service)
+      const writer = await service.getCharacteristic(BLE.writeChar)
+      return { ok: true, deviceId: device?.id || device?.name || null, server, writer }
+    } catch (e) {
+      setBleMsg('No se pudo conectar por BLE: ' + (e?.message || String(e)))
+      return { ok: false }
+    }
+  }
+
+  async function sendConfigOverBle(ble, plantId, deviceId) {
+    try {
+      if (!ble?.writer) return false
+      const encoder = new TextEncoder()
+      const json = JSON.stringify({ plantId, deviceId, apiBase: API_BASE })
+      await ble.writer.writeValue(encoder.encode(json))
+      try { if (ble.server) await ble.server.disconnect() } catch {}
+      setBleMsg('Configuración enviada a la ESP32.')
+      return true
+    } catch (e) {
+      setBleMsg('Error enviando configuración: ' + (e?.message || String(e)))
+      return false
+    }
+  }
+
+  const sendConfigToThisPlant = async (e) => {
+    e?.preventDefault?.()
+    if (!active?._id) return
+    const ble = await connectBle()
+    if (!ble?.ok) return
+    await sendConfigOverBle(ble, active._id, active.deviceId)
+  }
   const isEmpty = !active
   return (
     <div className="screen plant-home">
@@ -47,6 +95,10 @@ export default function PlantHome() {
               potColor={meta[active._id]?.potColor || '#d2691e'}
               type={meta[active._id]?.type || active?.type || 'potus'}
             />
+          </div>
+          <div style={{ display: 'grid', placeItems: 'center', marginTop: 12 }}>
+            <button className="btn" onClick={sendConfigToThisPlant}>Enviar config a esta ESP32</button>
+            {bleMsg && <p className="hint" style={{marginTop: 6}}>{bleMsg}</p>}
           </div>
           {/* La información se muestra solo en el modal al tocar el cartel */}
           <PlantInfoModal open={openInfo} onClose={() => setOpenInfo(false)} plant={active} meta={meta[active._id]} />
