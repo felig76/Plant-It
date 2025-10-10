@@ -56,6 +56,22 @@ export default function CreatePlantModal({ open, onClose }) {
         userId: user?.id,
         deviceId: ble.deviceId,
       }
+
+  // Enviar configuración final a la ESP32 en la misma sesión BLE
+  async function sendConfigOverBle(ble, plantId, deviceId) {
+    try {
+      if (!ble?.writer) return false
+      const encoder = new TextEncoder()
+      const json = JSON.stringify({ plantId, deviceId, apiBase: API_BASE })
+      await ble.writer.writeValue(encoder.encode(json))
+      // desconectar opcionalmente
+      try { if (ble.server) await ble.server.disconnect() } catch {}
+      setBleMsg('Configuración enviada a la ESP32.')
+      return true
+    } catch {
+      return false
+    }
+  }
       const { newPlant } = await createPlant(payload)
 
       // 3) Enviar credenciales WiFi y esperar confirmación
