@@ -3,6 +3,19 @@ const bcrypt = require('bcryptjs')
 const { createAccessToken } = require('../utils/jwt.js')
 const appError = require('../utils/appError.js')
 
+// Opciones coherentes para la cookie del token (cross-site en Render)
+const baseCookieOptions = {
+    httpOnly: true,
+    path: '/',
+};
+const prodCookieExtra = {
+    sameSite: 'none',
+    secure: true,
+};
+const cookieOptions = process.env.NODE_ENV === 'production'
+    ? { ...baseCookieOptions, ...prodCookieExtra }
+    : baseCookieOptions;
+
 exports.register = async (req, res, next) => {
     const { userName, email, password } = req.body
     try{
@@ -22,7 +35,7 @@ exports.register = async (req, res, next) => {
 
         // Crea el token con la funcion importada
         const token = await createAccessToken({ id: newUser._id })
-        res.cookie('token', token, { httpOnly: true }) // Guardar el token en una cookie.
+        res.cookie('token', token, cookieOptions) // Guardar el token en una cookie.
         // httpOnly: true significa que la cookie no es accesible desde JavaScript del lado del cliente, lo que ayuda a prevenir ataques XSS (Cross-Site Scripting).
 
         res.status(201).json({
@@ -56,7 +69,7 @@ exports.login = async (req, res, next) => {
 
         // Crea el token con la funcion importada
         const token = await createAccessToken({ id: userFound._id })
-        res.cookie('token', token, { httpOnly: true }) // Guardar el token en una cookie
+        res.cookie('token', token, cookieOptions) // Guardar el token en una cookie
         return res.status(200).json({
             id: userFound._id,
             userName: userFound.userName,
@@ -72,13 +85,13 @@ exports.login = async (req, res, next) => {
 
 exports.logout = async (req, res, next) => {
     try{
-        res.clearCookie('token') // Limpiar la cookie
+        res.clearCookie('token', cookieOptions) // Limpiar la cookie con mismas opciones
         res.status(200).json({ message: 'Logout success' })
     } catch (e) {
         next(e)
     }
 }
- 
+
 exports.getProfile = async (req, res, next) => {
     try{
         const userFound = await User.findById(req.user.id) // Busca el usuario por ID
