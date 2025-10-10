@@ -46,6 +46,16 @@ export default function CreatePlantModal({ open, onClose }) {
         throw new Error('No se pudo provisionar la ESP32. Verifica el WiFi o vuelve a intentar.')
       }
 
+  // Persistir en la ESP32 el plantId y la URL base del backend para que publique telemetría.
+  // Stub no bloqueante hasta implementar integración real con el firmware.
+  async function provisionPersistPlant(plantId, deviceId) {
+    try {
+      // TODO: Implementar (BLE/HTTP hacia el dispositivo) según tu firmware.
+      return { ok: true }
+    } catch {
+      return { ok: false }
+    }
+  }
       // 2) Datos ficticios de sensores para crear la planta
       const payload = {
         name,
