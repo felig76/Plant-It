@@ -47,12 +47,31 @@ export default function CreatePlantModal({ open, onClose }) {
       }
 
   // Persistir en la ESP32 el plantId y la URL base del backend para que publique telemetría.
-  // Stub no bloqueante hasta implementar integración real con el firmware.
+  // Implementación BLE: re-conecta, obtiene el mismo service y characteristic de escritura y envía JSON.
   async function provisionPersistPlant(plantId, deviceId) {
+    if (!supported) {
+      setBleMsg('Bluetooth Web no disponible para persistir configuración.')
+      return { ok: false }
+    }
     try {
-      // TODO: Implementar (BLE/HTTP hacia el dispositivo) según tu firmware.
+      setBleMsg('Conectando por BLE para guardar configuración...')
+      const device = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: [BLE.service],
+      })
+      const server = await device.gatt.connect()
+      const service = await server.getPrimaryService(BLE.service)
+      const writer = await service.getCharacteristic(BLE.writeChar)
+
+      const json = JSON.stringify({ plantId, deviceId, apiBase: API_BASE })
+      const encoder = new TextEncoder()
+      await writer.writeValue(encoder.encode(json))
+
+      try { await server.disconnect() } catch {}
+      setBleMsg('Configuración enviada a la ESP32.')
       return { ok: true }
-    } catch {
+    } catch (e) {
+      setBleMsg('No se pudo enviar configuración a la ESP32: ' + (e?.message || String(e)))
       return { ok: false }
     }
   }
@@ -69,8 +88,8 @@ export default function CreatePlantModal({ open, onClose }) {
         deviceId: prov.deviceId,
       }
       const { newPlant } = await createPlant(payload)
-      // 3) Enviar plantId y API base a la ESP32 para que pueda publicar
-      await provisionPersistPlant(newPlant._id, prov.deviceId)
+      // 3) Enviar plantId y API base a la ESP32 para que pueda publicar (reutiliza conexión BLE si está disponible)
+      await provisionPersistPlant(newPlant._id, prov.deviceId, prov)
       // Guardar planta en store
       addPlant(newPlant)
       // Guardar meta local (color)
@@ -186,12 +205,19 @@ export default function CreatePlantModal({ open, onClose }) {
         setBleMsg('No se pudo verificar el estado. Asegurate de tener firmware con characteristic de estado.')
       }
 
-      try { await server.disconnect() } catch {}
-
+      // No desconectamos aún: si conectó, reusaremos la conexión para enviar config
       if (connected) {
         setBleMsg('ESP32 conectada al WiFi correctamente.')
-        return { ok: true, deviceId: device?.id || device?.name || null }
+        return {
+          ok: true,
+          deviceId: device?.id || device?.name || null,
+          device,
+          server,
+          service,
+          writer,
+        }
       } else {
+        try { await server.disconnect() } catch {}
         setBleMsg('La ESP32 no confirmó conexión WiFi.')
         return { ok: false }
       }
