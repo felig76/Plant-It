@@ -12,9 +12,12 @@ const prodCookieExtra = {
     sameSite: 'none',
     secure: true,
 };
-const cookieOptions = process.env.NODE_ENV === 'production'
-    ? { ...baseCookieOptions, ...prodCookieExtra }
-    : baseCookieOptions;
+// En Render puede que NODE_ENV no esté definido como 'production'.
+// Para evitar que el navegador bloquee la cookie cross-site, usaremos
+// SameSite=None; Secure por defecto salvo en desarrollo local.
+const cookieOptions = process.env.NODE_ENV === 'development'
+    ? baseCookieOptions
+    : { ...baseCookieOptions, ...prodCookieExtra };
 
 exports.register = async (req, res, next) => {
     const { userName, email, password } = req.body

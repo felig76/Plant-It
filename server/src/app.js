@@ -14,6 +14,10 @@ connectDB();
 
 const app = express();
 
+// Render y otros PaaS usan proxy HTTPS -> HTTP hacia tu app.
+// Esto ayuda con cookies `secure` y detección de esquema.
+app.set('trust proxy', 1);
+
 const allowedOrigins = [
   'https://plant-it-1-kb8j.onrender.com', // tu frontend
   'http://localhost:5173' // opcional para desarrollo
