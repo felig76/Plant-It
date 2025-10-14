@@ -7,7 +7,7 @@ function createAccessToken(payload){  // payload: datos que se van a guardar en 
         // La promesa se resuelve con el token o se rechaza con un error
 
         // jwt.sign: firma el token con la clave secreta y establece la duración del token
-        jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET , { expiresIn: '1h' }, (err, token) => {
+        jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET , { expiresIn: '1d' }, (err, token) => {
             if(err){
                 return reject(err)
             }
