@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { API_BASE } from '../api/axios.js'
 import usePlantStore from '../store/usePlantStore.js'
+import { getPlantById } from '../api/plants.js'
 import SensorCard from '../components/SensorCard.jsx'
 import PlantAvatar from '../components/PlantAvatar.jsx'
 import PlantInfoModal from '../components/PlantInfoModal.jsx'
@@ -8,10 +9,35 @@ import CreatePlantModal from '../components/CreatePlantModal.jsx'
 
 export default function PlantHome() {
   const active = usePlantStore((s) => s.active)
+  const setActive = usePlantStore((s) => s.setActive)
   const meta = usePlantStore((s) => s.meta)
   const [openInfo, setOpenInfo] = useState(false)
   const [openCreate, setOpenCreate] = useState(false)
   const [bleMsg, setBleMsg] = useState('')
+
+  // Polling para actualizar datos en tiempo real
+  useEffect(() => {
+    if (!active?._id) return
+
+    const fetchPlantData = async () => {
+      try {
+        const data = await getPlantById(active._id)
+        if (data?.plant) {
+          setActive(data.plant)
+        }
+      } catch (error) {
+        console.error('Error fetching plant data:', error)
+      }
+    }
+
+    // Actualizar inmediatamente
+    fetchPlantData()
+
+    // Actualizar cada 5 segundos
+    const interval = setInterval(fetchPlantData, 5000)
+
+    return () => clearInterval(interval)
+  }, [active?._id, setActive])
 
   // Helpers BLE (mismos UUIDs que en el modal)
   const BLE = {
