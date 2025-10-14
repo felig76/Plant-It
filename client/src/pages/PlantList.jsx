@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import CreatePlantModal from '../components/CreatePlantModal.jsx'
 import PlantAvatar from '../components/PlantAvatar.jsx'
 import { useState } from 'react'
+import { getPlantMood } from '../utils/plantRanges.js'
 
 export default function PlantList() {
   const navigate = useNavigate()
@@ -74,16 +75,25 @@ export default function PlantList() {
               </svg>
             </div>
           </button>
-          {plants.map((p) => (
-            <button key={p._id} className="plant-card" onClick={() => openPlant(p)}>
-              <PlantAvatar
-                size={78}
-                potColor={meta[p._id]?.potColor || '#d2691e'}
-                type={meta[p._id]?.type || p.type || 'potus'}
-              />
-              <div className="name">{p.name}</div>
-            </button>
-          ))}
+          {plants.map((p) => {
+            const mood = getPlantMood(
+              meta[p._id]?.type || p.type,
+              p.groundHumedity,
+              p.lightExposure,
+              p.temperature
+            )
+            return (
+              <button key={p._id} className="plant-card" onClick={() => openPlant(p)}>
+                <PlantAvatar
+                  size={78}
+                  potColor={meta[p._id]?.potColor || '#d2691e'}
+                  type={meta[p._id]?.type || p.type || 'potus'}
+                  mood={mood}
+                />
+                <div className="name">{p.name}</div>
+              </button>
+            )
+          })}
         </div>
       )}
       <CreatePlantModal open={open} onClose={() => setOpen(false)} />

@@ -1,5 +1,84 @@
-export default function PlantAvatar({ size = 120, potColor = '#d1823a', type = 'potus' }) {
+export default function PlantAvatar({ 
+  size = 120, 
+  potColor = '#d1823a', 
+  type = 'potus',
+  mood = {} // { thirsty, sad, squinting, hot, cold }
+}) {
   const stemColor = ['cactus','sansevieria'].includes(type) ? '#2e7d32' : '#7c5a2f'
+  
+  // Componente de carita con diferentes expresiones
+  const Face = ({ mood }) => {
+    // Prioridad de estados: sed > frío/calor > luz
+    if (mood.thirsty) {
+      // Sed: boca abierta en O, ojos cansados
+      return (
+        <g>
+          <ellipse cx="50" cy="92" rx="2.5" ry="3.5" fill="#000" />
+          <ellipse cx="70" cy="92" rx="2.5" ry="3.5" fill="#000" />
+          <ellipse cx="60" cy="100" rx="4" ry="5" fill="#000" />
+          <path d="M58 100 Q60 103 62 100" stroke="#8b4513" strokeWidth="1" fill="none" />
+        </g>
+      )
+    }
+    
+    if (mood.cold) {
+      // Frío: ojos preocupados, boca temblorosa
+      return (
+        <g>
+          <path d="M48 90 L50 92 L52 90" stroke="#000" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          <path d="M68 90 L70 92 L72 90" stroke="#000" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          <path d="M52 98 L54 100 L56 98 L58 100 L60 98 L62 100 L64 98 L66 100 L68 98" stroke="#4a90e2" strokeWidth="2" fill="none" strokeLinecap="round" />
+        </g>
+      )
+    }
+    
+    if (mood.hot) {
+      // Calor: ojos cansados, lengua afuera
+      return (
+        <g>
+          <ellipse cx="50" cy="92" rx="2.5" ry="3.5" fill="#000" />
+          <ellipse cx="70" cy="92" rx="2.5" ry="3.5" fill="#000" />
+          <path d="M52 98 Q60 103 68 98" stroke="#000" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <ellipse cx="60" cy="104" rx="3" ry="5" fill="#ff6b6b" />
+          {/* Gotas de sudor */}
+          <ellipse cx="45" cy="88" rx="2" ry="3" fill="#4a90e2" opacity="0.6" />
+          <ellipse cx="75" cy="88" rx="2" ry="3" fill="#4a90e2" opacity="0.6" />
+        </g>
+      )
+    }
+    
+    if (mood.sad) {
+      // Triste (poca luz): ojos hacia abajo, boca triste
+      return (
+        <g>
+          <circle cx="50" cy="93" r="2.5" fill="#000" />
+          <circle cx="70" cy="93" r="2.5" fill="#000" />
+          <path d="M52 102 Q60 98 68 102" stroke="#000" strokeWidth="3" fill="none" strokeLinecap="round" />
+        </g>
+      )
+    }
+    
+    if (mood.squinting) {
+      // Ojos entrecerrados (mucha luz): líneas en vez de círculos
+      return (
+        <g>
+          <path d="M47 92 L53 92" stroke="#000" strokeWidth="3" strokeLinecap="round" />
+          <path d="M67 92 L73 92" stroke="#000" strokeWidth="3" strokeLinecap="round" />
+          <path d="M52 98 Q60 102 68 98" stroke="#000" strokeWidth="3" fill="none" strokeLinecap="round" />
+        </g>
+      )
+    }
+    
+    // Estado normal/feliz
+    return (
+      <g>
+        <circle cx="50" cy="92" r="3" fill="#000" />
+        <circle cx="70" cy="92" r="3" fill="#000" />
+        <path d="M52 98 Q60 102 68 98" stroke="#000" strokeWidth="3" fill="none" strokeLinecap="round" />
+      </g>
+    )
+  }
+  
   // Tallo/tronco simple
   const Stem = () => (
     <g>
@@ -22,10 +101,8 @@ export default function PlantAvatar({ size = 120, potColor = '#d1823a', type = '
       <path d="M32 74 h56 c2 0 3 1 3 3 v20 c0 6-5 10-11 10 H40 c-6 0-11-4-11-10 V77 c0-2 1-3 3-3z" fill="url(#potShade)" stroke={shade(potColor, -25)} strokeWidth="2"/>
       {/* Suelo */}
       <ellipse cx="60" cy="64" rx="28" ry="6" fill="#6b4f2a" opacity=".6"/>
-      {/* Carita */}
-      <circle cx="50" cy="92" r="3" fill="#000" />
-      <circle cx="70" cy="92" r="3" fill="#000" />
-      <path d="M52 98 Q60 102 68 98" stroke="#000" strokeWidth="3" fill="none" strokeLinecap="round" />
+      {/* Carita con expresiones según el estado */}
+      <Face mood={mood} />
     </g>
   )
 

@@ -6,6 +6,7 @@ import SensorCard from '../components/SensorCard.jsx'
 import PlantAvatar from '../components/PlantAvatar.jsx'
 import PlantInfoModal from '../components/PlantInfoModal.jsx'
 import CreatePlantModal from '../components/CreatePlantModal.jsx'
+import { getPlantMood } from '../utils/plantRanges.js'
 
 export default function PlantHome() {
   const active = usePlantStore((s) => s.active)
@@ -84,6 +85,15 @@ export default function PlantHome() {
     if (!ble?.ok) return
     await sendConfigOverBle(ble, active._id, active.deviceId)
   }
+  
+  // Calcular el estado emocional de la planta
+  const plantMood = active ? getPlantMood(
+    meta[active._id]?.type || active?.type,
+    active.groundHumedity,
+    active.lightExposure,
+    active.temperature
+  ) : {}
+  
   const isEmpty = !active
   return (
     <div className="screen plant-home">
@@ -120,6 +130,7 @@ export default function PlantHome() {
               size={140}
               potColor={meta[active._id]?.potColor || '#d2691e'}
               type={meta[active._id]?.type || active?.type || 'potus'}
+              mood={plantMood}
             />
           </div>
           <div style={{ display: 'grid', placeItems: 'center', marginTop: 12 }}>
