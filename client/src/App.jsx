@@ -15,7 +15,7 @@ import { getPlants } from './api/plants.js'
 function ProtectedRoute({ children }) {
   const isAuth = useAuthStore((s) => !!s.user)
   const ready = useAuthStore((s) => s.ready)
-  if (!ready) return null // evita parpadeo/redirect mientras se chequea la sesión
+  if (!ready) return null
   if (!isAuth) return <Navigate to="/login" replace />
   return children
 }
@@ -27,7 +27,6 @@ export default function App() {
   const setPlants = usePlantStore((s) => s.setPlants)
   const setActive = usePlantStore((s) => s.setActive)
 
-  // Mantener sesión si la cookie existe
   useEffect(() => {
     (async () => {
       try {
@@ -38,10 +37,8 @@ export default function App() {
     })()
   }, [setUser, setReady])
 
-  // Cargar metadatos locales de plantas (color/tipo) para persistir el color de maceta
   useEffect(() => { loadMeta() }, [loadMeta])
 
-  // Tras autenticarnos, traer plantas y marcar la primera como activa (si no hay una ya)
   useEffect(() => {
     (async () => {
       try {
@@ -89,7 +86,6 @@ export default function App() {
           }
         />
       </Routes>
-      {/* Nav inferior persistente cuando estás autenticado */}
       <AuthAwareBottomNav />
     </div>
   )

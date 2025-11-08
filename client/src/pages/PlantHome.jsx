@@ -17,7 +17,6 @@ export default function PlantHome() {
   const [openCreate, setOpenCreate] = useState(false)
   const [bleMsg, setBleMsg] = useState('')
 
-  // Polling para actualizar datos en tiempo real
   useEffect(() => {
     if (!active?._id) return
 
@@ -32,10 +31,8 @@ export default function PlantHome() {
       }
     }
 
-    // Actualizar inmediatamente
     fetchPlantData()
 
-    // Actualizar cada 5 segundos
     const interval = setInterval(fetchPlantData, 5000)
 
     return () => clearInterval(interval)
@@ -126,7 +123,6 @@ export default function PlantHome() {
             <button className="btn" onClick={sendConfigToThisPlant}>Enviar config a esta ESP32</button>
             {bleMsg && <p className="hint" style={{marginTop: 6}}>{bleMsg}</p>}
           </div>
-          {/* La información se muestra solo en el modal al tocar el cartel */}
           <PlantInfoModal open={openInfo} onClose={() => setOpenInfo(false)} plant={active} meta={meta[active._id]} />
         </>
       )}

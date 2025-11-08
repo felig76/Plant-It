@@ -1,9 +1,8 @@
-// Rangos ideales de condiciones ambientales por tipo de planta
 export const PLANT_RANGES = {
   potus: {
     groundHumidity: { min: 40, max: 60 },
-    light: { min: 1000, max: 2500 }, // lux
-    temperature: { min: 18, max: 27 }, // °C
+    light: { min: 1000, max: 2500 },
+    temperature: { min: 18, max: 27 },
   },
   sansevieria: {
     groundHumidity: { min: 20, max: 40 },
@@ -47,31 +46,21 @@ export const PLANT_RANGES = {
   },
 }
 
-/**
- * Calcula el estado emocional de la planta basado en sus condiciones actuales
- * @param {string} type - Tipo de planta
- * @param {number} groundHumidity - Humedad del suelo actual
- * @param {number} light - Exposición a la luz actual
- * @param {number} temperature - Temperatura actual
- * @returns {Object} Estado emocional con propiedades: thirsty, sad, squinting, hot, cold
- */
 export function getPlantMood(type, groundHumidity, light, temperature) {
   const ranges = PLANT_RANGES[type?.toLowerCase()] || PLANT_RANGES.potus
   
   const mood = {
-    thirsty: false,    // Poca humedad
-    sad: false,        // Poca luz
-    squinting: false,  // Mucha luz
-    hot: false,        // Mucha temperatura
-    cold: false,       // Poca temperatura
+    thirsty: false,
+    sad: false,
+    squinting: false,
+    hot: false,
+    cold: false,
   }
 
-  // Verificar humedad (sed si está por debajo del mínimo)
   if (groundHumidity != null && groundHumidity < ranges.groundHumidity.min) {
     mood.thirsty = true
   }
 
-  // Verificar luz
   if (light != null) {
     if (light < ranges.light.min) {
       mood.sad = true
@@ -80,7 +69,6 @@ export function getPlantMood(type, groundHumidity, light, temperature) {
     }
   }
 
-  // Verificar temperatura
   if (temperature != null) {
     if (temperature > ranges.temperature.max) {
       mood.hot = true
