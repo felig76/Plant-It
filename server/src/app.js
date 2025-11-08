@@ -18,11 +18,12 @@ const app = express();
 // Esto ayuda con cookies `secure` y detección de esquema.
 app.set('trust proxy', 1);
 
+app.post('/esp-data', express.json(), (req, res) => {
+ console.log('Datos recibidos desde ESP32:', req.body);
+ res.status(200).send('OK');
+});
 
-const allowedOrigins = [
-  'https://plant-it-1-kb8j.onrender.com', // tu frontend
-  'http://localhost:5173' // opcional para desarrollo
-];
+
 
 app.use(cors({
   origin: (origin, callback) => {
