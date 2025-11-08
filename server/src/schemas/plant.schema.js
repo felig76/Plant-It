@@ -1,3 +1,4 @@
+// Esquema Zod para validar creación/actualización básica de Plant
 const { z } = require('zod')
 
 exports.plantSchema = z.object({

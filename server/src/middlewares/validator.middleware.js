@@ -1,3 +1,4 @@
+// Middleware de validación: aplica un esquema Zod al body de la petición
 exports.validateSchema = (schema) => (req, res, next) => {
     try {
         schema.parse(req.body) // Valida el cuerpo de la solicitud con el esquema proporcionado

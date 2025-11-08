@@ -1,3 +1,5 @@
+// Rangos ideales por tipo de planta para suelo, luz y temperatura
+// Se usan para evaluar el "ánimo" de la planta con getPlantMood
 export const PLANT_RANGES = {
   potus: {
     groundHumidity: { min: 40, max: 60 },
@@ -46,6 +48,7 @@ export const PLANT_RANGES = {
   },
 }
 
+// Calcula un "ánimo" simple comparando mediciones con rangos ideales
 export function getPlantMood(type, groundHumidity, light, temperature) {
   const ranges = PLANT_RANGES[type?.toLowerCase()] || PLANT_RANGES.potus
   

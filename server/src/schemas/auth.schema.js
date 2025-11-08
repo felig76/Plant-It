@@ -1,3 +1,4 @@
+// Esquemas Zod para validar payloads de autenticación y usuario
 const { z } = require('zod')
 
 exports.registerSchema = z.object({

@@ -1,3 +1,4 @@
+// Pantalla de inicio de sesión: envía email/contraseña al backend y guarda el usuario
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import useAuthStore from '../store/useAuthStore.js'
@@ -11,6 +12,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Envía credenciales, guarda usuario y redirige
   const onSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)

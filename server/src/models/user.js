@@ -1,3 +1,4 @@
+// Modelo Mongoose para User: credenciales básicas y relación con plantas
 const mongoose = require('mongoose')
 
 const userSchema = new mongoose.Schema({

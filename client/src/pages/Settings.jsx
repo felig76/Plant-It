@@ -1,3 +1,4 @@
+// Pantalla de configuración: muestra datos del usuario y permite cerrar sesión
 import useAuthStore from '../store/useAuthStore.js'
 import { logout } from '../api/auth.js'
 
@@ -5,7 +6,7 @@ export default function Settings() {
   const user = useAuthStore((s) => s.user)
   const setUser = useAuthStore((s) => s.setUser)
  
-
+  // Cierra sesión en backend y limpia el usuario en el store
   const signOut = async () => {
     try {
       await logout()

@@ -1,3 +1,4 @@
+// Rutas de plantas: CRUD protegido por JWT y endpoint público de ingesta
 const express = require('express')
 const router = express.Router()
 

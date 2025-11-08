@@ -1,3 +1,4 @@
+// Modal con información y acciones de una planta (ver métricas, recomendaciones, borrar)
 import { deletePlant } from '../api/plants.js'
 import usePlantStore from '../store/usePlantStore.js'
 
@@ -9,6 +10,7 @@ export default function PlantInfoModal({ open, onClose, plant, meta }) {
   const plants = usePlantStore((s) => s.plants)
   const setActive = usePlantStore((s) => s.setActive)
 
+  // Borra la planta en backend y actualiza el estado global
   const remove = async () => {
     try {
       await deletePlant(plant._id)
@@ -52,10 +54,12 @@ export default function PlantInfoModal({ open, onClose, plant, meta }) {
   )
 }
 
+// Formatea valores con unidad o raya si faltan
 function fmt(v, unit) {
   return v == null ? '—' : `${v} ${unit}`
 }
 
+// Consejos básicos por tipo de planta
 function getTips(type) {
   const base = {
     potus: [

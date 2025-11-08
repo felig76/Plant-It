@@ -1,3 +1,4 @@
+// Controlador de usuario: registro, login, logout, perfil, actualización y borrado
 const User = require('../models/user.js')
 const bcrypt = require('bcryptjs')
 const { createAccessToken } = require('../utils/jwt.js')

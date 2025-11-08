@@ -1,3 +1,6 @@
+// Modal para crear una nueva planta y configurar la ESP32 por BLE
+// Flujo: usuario ingresa WiFi -> conecta por BLE -> crea planta en backend ->
+// envía credenciales WiFi -> envía config (plantId, deviceId, apiBase)
 import { useState, useMemo } from 'react'
 import useAuthStore from '../store/useAuthStore.js'
 import usePlantStore from '../store/usePlantStore.js'
@@ -11,6 +14,7 @@ export default function CreatePlantModal({ open, onClose }) {
   const addPlant = usePlantStore((s) => s.addPlant)
   const setMeta = usePlantStore((s) => s.setMeta)
 
+  // Estados del formulario y BLE
   const [name, setName] = useState('Mi planta')
   const [type, setType] = useState(PLANT_TYPES[0].key)
   const [color, setColor] = useState('#d2691e')
@@ -25,14 +29,17 @@ export default function CreatePlantModal({ open, onClose }) {
   )
 
   if (!open) return null
+  // Crea planta en backend y configura la ESP32
   const submit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     try {
+      // 1) Conectar por BLE
       const ble = await connectBle()
       if (!ble?.ok) throw new Error('No se pudo conectar por BLE con la ESP32.')
 
+      // 2) Crear planta en backend (datos iniciales simulados)
       const payload = {
         name,
         type,
@@ -45,6 +52,7 @@ export default function CreatePlantModal({ open, onClose }) {
         deviceId: ble.deviceId,
       }
 
+  // Envía configuración (plantId, deviceId, apiBase) a la ESP32
   async function sendConfigOverBle(ble, plantId, deviceId) {
     try {
       if (!ble?.writer) return false
@@ -60,12 +68,15 @@ export default function CreatePlantModal({ open, onClose }) {
   }
       const { newPlant } = await createPlant(payload)
 
+      // 3) Enviar credenciales WiFi y esperar confirmación
       const wifiOk = await sendWifiOverBle(ble, ssid, password)
       if (!wifiOk) throw new Error('La ESP32 no confirmó conexión WiFi.')
 
+      // 4) Enviar configuración final con IDs
       const cfgOk = await sendConfigOverBle(ble, newPlant._id, ble.deviceId)
       if (!cfgOk) throw new Error('No se pudo enviar configuración a la ESP32.')
 
+      // 5) Actualizar estado global y metadatos locales
       addPlant(newPlant)
       setMeta(newPlant._id, { potColor: color, type })
       onClose()
@@ -76,6 +87,7 @@ export default function CreatePlantModal({ open, onClose }) {
     }
   }
 
+  // Establece conexión BLE y obtiene características para escribir/escuchar
   async function connectBle() {
     if (!supported) {
       setBleMsg('Bluetooth Web no disponible. Usa HTTPS o localhost en Chrome/Edge.')
@@ -103,6 +115,7 @@ export default function CreatePlantModal({ open, onClose }) {
     }
   }
 
+  // Envía credenciales WiFi y espera notificación/confirmación de la ESP32
   async function sendWifiOverBle(ble, ssid, password) {
     try {
       if (!ble?.writer) return false

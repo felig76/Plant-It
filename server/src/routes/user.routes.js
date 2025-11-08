@@ -1,5 +1,7 @@
+// Rutas de usuario: registro, login, logout, perfil y actualización (con JWT)
 const express = require('express')
 const router = express.Router()
+
 const userController = require('../controllers/user.controller') // Importa el controlador de usuario
 const { authRequired } = require('../middlewares/validateToken') // Importa el middleware de autenticación
 const { validateSchema } = require('../middlewares/validator.middleware') // Importa el middleware de validación

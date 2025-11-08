@@ -1,7 +1,9 @@
+// Controlador de plantas: creación, lectura, actualización, borrado y telemetría
 const Plant = require('../models/plant.js')
 const appError = require('../utils/appError.js')
 const User = require('../models/user.js')
 
+// Crea una nueva planta y la asocia al usuario
 exports.createPlant = async (req, res, next) => {
     const { name, type, groundHumedity, airHumedity, lightExposure, temperature, batteryLevel, userId, deviceId } = req.body
     try{
@@ -24,6 +26,7 @@ exports.createPlant = async (req, res, next) => {
 
 // Public ingest endpoint for ESP32 devices.
 // It validates using the plant's stored deviceId and updates latest measurements.
+// Ingesta pública desde ESP32: valida deviceId y actualiza mediciones
 exports.ingestTelemetry = async (req, res, next) => {
     const { plantId } = req.params
     const {
@@ -68,6 +71,7 @@ exports.ingestTelemetry = async (req, res, next) => {
     }
 }
 
+// Lista todas las plantas del usuario autenticado
 exports.getPlants = async (req, res, next) => {
     const userId = req.user.id
     try{
@@ -78,6 +82,7 @@ exports.getPlants = async (req, res, next) => {
     }
 }
 
+// Obtiene una planta por ID y verifica pertenencia
 exports.getPlantById = async (req, res, next) => {
     const { plantId } = req.params
     const userId = req.user.id
@@ -95,6 +100,7 @@ exports.getPlantById = async (req, res, next) => {
     }
 }
 
+// Actualiza solo el nombre de una planta (con autorización)
 exports.updateNamePlant = async (req, res, next) => {
     const { plantId } = req.params
     const { name } = req.body
@@ -117,6 +123,8 @@ exports.updateNamePlant = async (req, res, next) => {
         next(e)
     }
 }
+
+// Elimina una planta del usuario y la desasocia del usuario
 exports.deletePlant = async(req, res, next) => {
     const { plantId } = req.params
     const userId = req.user.id

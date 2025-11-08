@@ -1,3 +1,4 @@
+// Catálogo de tipos de plantas usados en selects y UI
 export const PLANT_TYPES = [
   { key: 'potus', label: 'Potus' },
   { key: 'sansevieria', label: 'Sansevieria' },

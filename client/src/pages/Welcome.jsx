@@ -1,3 +1,4 @@
+// Pantalla de bienvenida con CTA a Login/Registro
 import { useNavigate } from 'react-router-dom'
 import PlantAvatar from '../components/PlantAvatar.jsx'
 

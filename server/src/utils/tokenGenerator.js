@@ -1,3 +1,4 @@
+// Script utilitario: genera un secreto aleatorio (hex) para usar como JWT secret
 const crypto = require('crypto');
 
 // Cantidad de bytes (ej: 32 bytes = 256 bits)

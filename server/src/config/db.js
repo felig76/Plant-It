@@ -1,3 +1,4 @@
+// Conexión a MongoDB usando mongoose y la URI de entorno
 const mongoose = require('mongoose')
 
 const connectDB = async () => {

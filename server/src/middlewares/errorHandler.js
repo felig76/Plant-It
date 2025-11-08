@@ -1,3 +1,4 @@
+// Middleware centralizado de manejo de errores (formato uniforme JSON)
 const errorHandler = (err, req, res, next) => {
     console.log(err)
 

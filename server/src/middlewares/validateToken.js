@@ -1,3 +1,4 @@
+// Middleware de autenticación: verifica JWT en cookie y adjunta req.user
 const jwt = require('jsonwebtoken') // Importa el paquete jsonwebtoken para verificar tokens JWT
 
 exports.authRequired = (req, res, next) => {

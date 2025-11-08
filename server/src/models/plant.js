@@ -1,3 +1,4 @@
+// Modelo Mongoose para Plant: métricas, tipo, dueño y deviceId
 const mongoose = require('mongoose')
 
 const plantSchema = new mongoose.Schema({

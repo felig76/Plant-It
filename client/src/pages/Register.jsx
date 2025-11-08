@@ -1,3 +1,4 @@
+// Pantalla de registro: crea usuario en backend y guarda sesión
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import useAuthStore from '../store/useAuthStore.js'
@@ -12,6 +13,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Envía datos al backend, guarda el usuario y redirige
   const onSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)

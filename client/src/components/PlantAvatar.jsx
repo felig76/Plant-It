@@ -1,3 +1,5 @@
+// Dibuja un avatar SVG de la planta
+// Props: size, potColor, type (forma de hojas), mood (carita según estado)
 export default function PlantAvatar({ 
   size = 120, 
   potColor = '#d1823a', 
@@ -6,6 +8,7 @@ export default function PlantAvatar({
 }) {
   const stemColor = ['cactus','sansevieria'].includes(type) ? '#2e7d32' : '#7c5a2f'
   
+  // Caras según "ánimo" derivado de sensores
   const Face = ({ mood }) => {
     if (mood.thirsty) {
       return (
@@ -70,11 +73,13 @@ export default function PlantAvatar({
     )
   }
   
+  // Tallo simple
   const Stem = () => (
     <g>
       <rect x="58" y="34" width="4" height="32" rx="2" fill={stemColor} />
     </g>
   )
+  // Maceta con degradado y cara
   const Pot = () => (
     <g transform="translate(0,8)">
       <defs>
@@ -90,6 +95,7 @@ export default function PlantAvatar({
     </g>
   )
 
+  // Hojas según tipo de planta
   const Leaves = () => {
     const green = '#2e9d5f'
     const greenLight = '#53c27d'
@@ -174,6 +180,7 @@ export default function PlantAvatar({
   )
 }
 
+// Utilidad para aclarar/oscurecer color
 function shade(hex, percent) {
   const num = parseInt(hex.replace('#',''),16)
   let r = (num >> 16) + percent

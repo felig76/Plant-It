@@ -1,3 +1,4 @@
+// Lista las plantas del usuario y permite crear una nueva o abrir una existente
 import { useEffect } from 'react'
 import { getPlants } from '../api/plants.js'
 import usePlantStore from '../store/usePlantStore.js'
@@ -17,6 +18,7 @@ export default function PlantList() {
   const [open, setOpen] = useState(false)
   const isEmpty = !Array.isArray(plants) || plants.length === 0
 
+  // Cargar plantas del backend y sembrar metadatos locales (color y tipo)
   useEffect(() => {
     (async () => {
       try {
@@ -37,6 +39,7 @@ export default function PlantList() {
     })()
   }, [setPlants, meta, setMeta])
 
+  // Abrir una planta y navegar a la pantalla principal
   const openPlant = (p) => {
     setActive(p)
     navigate('/home')
@@ -68,6 +71,7 @@ export default function PlantList() {
             </div>
           </button>
           {plants.map((p) => {
+            // Calcula el "ánimo" con las mediciones y rangos por tipo
             const mood = getPlantMood(
               meta[p._id]?.type || p.type,
               p.groundHumedity,
