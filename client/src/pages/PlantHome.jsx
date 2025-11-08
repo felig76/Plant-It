@@ -1,22 +1,30 @@
+// Pantalla principal de una planta: muestra estado, permite enviar config por BLE
 import { useState, useEffect } from 'react'
 import { API_BASE } from '../api/axios.js'
+// Store global de plantas (lista, activa, metadatos)
 import usePlantStore from '../store/usePlantStore.js'
+// API para obtener datos actualizados de la planta activa
 import { getPlantById } from '../api/plants.js'
+// Tarjetas para sensores y componentes visuales
 import SensorCard from '../components/SensorCard.jsx'
 import PlantAvatar from '../components/PlantAvatar.jsx'
 import PlantInfoModal from '../components/PlantInfoModal.jsx'
 import CreatePlantModal from '../components/CreatePlantModal.jsx'
+// Calcula "estado de ánimo" según rangos ideales
 import { getPlantMood } from '../utils/plantRanges.js'
+// UUIDs y nombre del servicio BLE
 import { BLE } from '../constants/ble.js'
 
 export default function PlantHome() {
-  const active = usePlantStore((s) => s.active)
+  // Estado global y local de la pantalla
+  const active = usePlantStore((s) => s.active)      // planta seleccionada
   const setActive = usePlantStore((s) => s.setActive)
-  const meta = usePlantStore((s) => s.meta)
-  const [openInfo, setOpenInfo] = useState(false)
-  const [openCreate, setOpenCreate] = useState(false)
-  const [bleMsg, setBleMsg] = useState('')
+  const meta = usePlantStore((s) => s.meta)          // metadatos locales por planta
+  const [openInfo, setOpenInfo] = useState(false)    // modal con info de planta
+  const [openCreate, setOpenCreate] = useState(false)// modal para crear planta
+  const [bleMsg, setBleMsg] = useState('')           // mensajes de BLE al usuario
 
+  // Polling periódico para actualizar la planta activa desde el backend
   useEffect(() => {
     if (!active?._id) return
 
@@ -31,6 +39,7 @@ export default function PlantHome() {
       }
     }
 
+    // Ejecutar de inmediato y luego cada 5s
     fetchPlantData()
 
     const interval = setInterval(fetchPlantData, 5000)
@@ -40,6 +49,7 @@ export default function PlantHome() {
 
   
 
+  // Conectar por BLE al dispositivo (pide al navegador seleccionar uno)
   async function connectBle() {
     try {
       setBleMsg('Buscando dispositivo BLE...')
@@ -57,6 +67,7 @@ export default function PlantHome() {
     }
   }
 
+  // Envía configuración (plantId, deviceId, apiBase) a la ESP32 por BLE
   async function sendConfigOverBle(ble, plantId, deviceId) {
     try {
       if (!ble?.writer) return false
@@ -67,20 +78,27 @@ export default function PlantHome() {
       setBleMsg('Configuración enviada a la ESP32.')
       return true
     } catch (e) {
+      // Manejo de errores al enviar configuración por BLE
       setBleMsg('Error enviando configuración: ' + (e?.message || String(e)))
       return false
     }
   }
 
+  // Acción de UI: conectar y enviar config a la ESP32 de la planta activa
   const sendConfigToThisPlant = async (e) => {
+    // Evitar comportamiento no deseado si se hace clic en el botón
     e?.preventDefault?.()
+    // Verificar si hay una planta activa antes de proceder
     if (!active?._id) return
+    // Establecer conexión BLE con la planta activa
     const ble = await connectBle()
+    // Verificar si la conexión BLE fue exitosa
     if (!ble?.ok) return
+    // Enviar configuración a la planta activa por BLE
     await sendConfigOverBle(ble, active._id, active.deviceId)
   }
   
-  // Calcular el estado emocional de la planta
+  // "Estado de ánimo" derivado de las mediciones actuales vs rangos ideales
   const plantMood = active ? getPlantMood(
     meta[active._id]?.type || active?.type,
     active.groundHumedity,
@@ -108,6 +126,7 @@ export default function PlantHome() {
         </div>
       ) : (
         <>
+          {/* Cartel superior: abre info de la planta */}
           <button className="sign top" onClick={() => setOpenInfo(true)} aria-label="Ver información de la planta">
             <span className="sign-text">{active?.name}</span>
           </button>
@@ -123,6 +142,7 @@ export default function PlantHome() {
             <button className="btn" onClick={sendConfigToThisPlant}>Enviar config a esta ESP32</button>
             {bleMsg && <p className="hint" style={{marginTop: 6}}>{bleMsg}</p>}
           </div>
+          {/* Modal con datos y acciones de la planta */}
           <PlantInfoModal open={openInfo} onClose={() => setOpenInfo(false)} plant={active} meta={meta[active._id]} />
         </>
       )}
