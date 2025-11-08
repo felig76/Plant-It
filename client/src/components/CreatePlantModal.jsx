@@ -3,6 +3,8 @@ import useAuthStore from '../store/useAuthStore.js'
 import usePlantStore from '../store/usePlantStore.js'
 import { createPlant } from '../api/plants.js'
 import { API_BASE } from '../api/axios.js'
+import { PLANT_TYPES } from '../constants/plants.js'
+import { BLE } from '../constants/ble.js'
 
 export default function CreatePlantModal({ open, onClose }) {
   const user = useAuthStore((s) => s.user)
@@ -10,20 +12,8 @@ export default function CreatePlantModal({ open, onClose }) {
   const setMeta = usePlantStore((s) => s.setMeta)
 
   const [name, setName] = useState('Mi planta')
-  // Tipos comunes en Argentina
-  const PLANT_TYPES = [
-    { key: 'potus', label: 'Potus' },
-    { key: 'sansevieria', label: 'Sansevieria' },
-    { key: 'suculenta', label: 'Suculenta' },
-    { key: 'cactus', label: 'Cactus' },
-    { key: 'ficus', label: 'Ficus' },
-    { key: 'helecho', label: 'Helecho' },
-    { key: 'monstera', label: 'Monstera' },
-    { key: 'aromaticas', label: 'Aromáticas' },
-    { key: 'geranio', label: 'Geranio' },
-  ]
   const [type, setType] = useState(PLANT_TYPES[0].key)
-  const [color, setColor] = useState('#d2691e') // chocolate
+  const [color, setColor] = useState('#d2691e')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [ssid, setSsid] = useState('')
@@ -40,11 +30,9 @@ export default function CreatePlantModal({ open, onClose }) {
     setLoading(true)
     setError('')
     try {
-      // 1) Conectar BLE (obtener deviceId y canales)
       const ble = await connectBle()
       if (!ble?.ok) throw new Error('No se pudo conectar por BLE con la ESP32.')
 
-      // 2) Crear planta en backend con deviceId del BLE
       const payload = {
         name,
         type,
@@ -57,14 +45,12 @@ export default function CreatePlantModal({ open, onClose }) {
         deviceId: ble.deviceId,
       }
 
-  // Enviar configuración final a la ESP32 en la misma sesión BLE
   async function sendConfigOverBle(ble, plantId, deviceId) {
     try {
       if (!ble?.writer) return false
       const encoder = new TextEncoder()
       const json = JSON.stringify({ plantId, deviceId, apiBase: API_BASE })
       await ble.writer.writeValue(encoder.encode(json))
-      // desconectar opcionalmente
       try { if (ble.server) await ble.server.disconnect() } catch {}
       setBleMsg('Configuración enviada a la ESP32.')
       return true
@@ -74,15 +60,12 @@ export default function CreatePlantModal({ open, onClose }) {
   }
       const { newPlant } = await createPlant(payload)
 
-      // 3) Enviar credenciales WiFi y esperar confirmación
       const wifiOk = await sendWifiOverBle(ble, ssid, password)
       if (!wifiOk) throw new Error('La ESP32 no confirmó conexión WiFi.')
 
-      // 4) Enviar plantId y apiBase para persistir configuración
       const cfgOk = await sendConfigOverBle(ble, newPlant._id, ble.deviceId)
       if (!cfgOk) throw new Error('No se pudo enviar configuración a la ESP32.')
 
-      // 5) Guardar en estado y cerrar
       addPlant(newPlant)
       setMeta(newPlant._id, { potColor: color, type })
       onClose()
@@ -91,14 +74,6 @@ export default function CreatePlantModal({ open, onClose }) {
     } finally {
       setLoading(false)
     }
-  }
-
-  // --- BLE WiFi Provisioning ---
-  const BLE = {
-    deviceName: 'ESP32-Setup',
-    service: '12345678-1234-5678-1234-56789abcdef0',
-    writeChar: 'abcdef01-1234-5678-1234-56789abcdef0',
-    statusChar: 'abcdef02-1234-5678-1234-56789abcdef0', // debe existir en el firmware
   }
 
   async function connectBle() {
@@ -135,7 +110,7 @@ export default function CreatePlantModal({ open, onClose }) {
       setBleMsg('Enviando credenciales WiFi...')
       const encoder = new TextEncoder()
       const json = JSON.stringify({ ssid, password })
-      // Suscribir notificaciones si existe statusChar
+
       let resolved = false
       if (ble.statusChar && ble.statusChar.properties?.notify) {
         await ble.statusChar.startNotifications()
@@ -147,7 +122,7 @@ export default function CreatePlantModal({ open, onClose }) {
         ble.statusChar.addEventListener('characteristicvaluechanged', onMsg)
       }
       await ble.writer.writeValue(encoder.encode(json))
-      // Esperar hasta 30s si hay statusChar
+
       if (ble.statusChar) {
         const start = Date.now()
         while (!resolved && Date.now() - start < 30000) {

@@ -14,14 +14,12 @@ export default function PlantInfoModal({ open, onClose, plant, meta }) {
       await deletePlant(plant._id)
       const nextList = plants.filter(p => p._id !== plant._id)
       setPlants(nextList)
-      // si era la activa, elegir la primera restante o limpiar
       const current = usePlantStore.getState().active
       if (current && current._id === plant._id) {
         setActive(nextList[0] || null)
       }
       onClose()
     } catch (e) {
-      // opcional: mostrar error
       onClose()
     }
   }
@@ -58,7 +56,6 @@ function fmt(v, unit) {
   return v == null ? '—' : `${v} ${unit}`
 }
 
-// Consejos básicos por tipo (adaptables)
 function getTips(type) {
   const base = {
     potus: [

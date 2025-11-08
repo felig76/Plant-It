@@ -7,6 +7,7 @@ import PlantAvatar from '../components/PlantAvatar.jsx'
 import PlantInfoModal from '../components/PlantInfoModal.jsx'
 import CreatePlantModal from '../components/CreatePlantModal.jsx'
 import { getPlantMood } from '../utils/plantRanges.js'
+import { BLE } from '../constants/ble.js'
 
 export default function PlantHome() {
   const active = usePlantStore((s) => s.active)
@@ -40,11 +41,7 @@ export default function PlantHome() {
     return () => clearInterval(interval)
   }, [active?._id, setActive])
 
-  // Helpers BLE (mismos UUIDs que en el modal)
-  const BLE = {
-    service: '12345678-1234-5678-1234-56789abcdef0',
-    writeChar: 'abcdef01-1234-5678-1234-56789abcdef0',
-  }
+  
 
   async function connectBle() {
     try {
@@ -98,21 +95,13 @@ export default function PlantHome() {
   return (
     <div className="screen plant-home">
       {isEmpty ? (
-        <div style={{ height: '100%', minHeight: '60vh', display: 'grid', placeItems: 'center' }}>
+        <div className="center-box">
           <button
             onClick={() => setOpenCreate(true)}
             aria-label="Crear planta"
-            style={{
-              border: '2px dashed #9bd08f',
-              borderRadius: 16,
-              padding: 24,
-              background: 'white',
-              display: 'grid',
-              placeItems: 'center',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.06)'
-            }}
+            className="btn-create-dashed"
           >
-            <div style={{ width: 84, height: 84, borderRadius: '50%', display: 'grid', placeItems: 'center', background: '#e8f8e6', color: '#2b6d2e', boxShadow: 'inset 0 -2px 0 rgba(0,0,0,0.06)' }}>
+            <div className="circle-cta">
               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{ display: 'block' }}>
                 <path d="M12 5v14M5 12h14" stroke="#2b6d2e" strokeWidth="2.5" strokeLinecap="round"/>
               </svg>

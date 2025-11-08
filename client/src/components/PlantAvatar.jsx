@@ -2,15 +2,12 @@ export default function PlantAvatar({
   size = 120, 
   potColor = '#d1823a', 
   type = 'potus',
-  mood = {} // { thirsty, sad, squinting, hot, cold }
+  mood = {} 
 }) {
   const stemColor = ['cactus','sansevieria'].includes(type) ? '#2e7d32' : '#7c5a2f'
   
-  // Componente de carita con diferentes expresiones
   const Face = ({ mood }) => {
-    // Prioridad de estados: sed > frío/calor > luz
     if (mood.thirsty) {
-      // Sed: boca abierta en O, ojos cansados
       return (
         <g>
           <ellipse cx="50" cy="92" rx="2.5" ry="3.5" fill="#000" />
@@ -22,7 +19,6 @@ export default function PlantAvatar({
     }
     
     if (mood.cold) {
-      // Frío: ojos preocupados, boca temblorosa
       return (
         <g>
           <path d="M48 90 L50 92 L52 90" stroke="#000" strokeWidth="2.5" fill="none" strokeLinecap="round" />
@@ -33,14 +29,12 @@ export default function PlantAvatar({
     }
     
     if (mood.hot) {
-      // Calor: ojos cansados, lengua afuera
       return (
         <g>
           <ellipse cx="50" cy="92" rx="2.5" ry="3.5" fill="#000" />
           <ellipse cx="70" cy="92" rx="2.5" ry="3.5" fill="#000" />
           <path d="M52 98 Q60 103 68 98" stroke="#000" strokeWidth="3" fill="none" strokeLinecap="round" />
           <ellipse cx="60" cy="104" rx="3" ry="5" fill="#ff6b6b" />
-          {/* Gotas de sudor */}
           <ellipse cx="45" cy="88" rx="2" ry="3" fill="#4a90e2" opacity="0.6" />
           <ellipse cx="75" cy="88" rx="2" ry="3" fill="#4a90e2" opacity="0.6" />
         </g>
@@ -48,7 +42,6 @@ export default function PlantAvatar({
     }
     
     if (mood.sad) {
-      // Triste (poca luz): ojos hacia abajo, boca triste
       return (
         <g>
           <circle cx="50" cy="93" r="2.5" fill="#000" />
@@ -59,7 +52,6 @@ export default function PlantAvatar({
     }
     
     if (mood.squinting) {
-      // Ojos entrecerrados (mucha luz): líneas en vez de círculos
       return (
         <g>
           <path d="M47 92 L53 92" stroke="#000" strokeWidth="3" strokeLinecap="round" />
@@ -69,7 +61,6 @@ export default function PlantAvatar({
       )
     }
     
-    // Estado normal/feliz
     return (
       <g>
         <circle cx="50" cy="92" r="3" fill="#000" />
@@ -79,14 +70,11 @@ export default function PlantAvatar({
     )
   }
   
-  // Tallo/tronco simple
   const Stem = () => (
     <g>
-      {/* línea vertical desde el centro hacia las hojas */}
       <rect x="58" y="34" width="4" height="32" rx="2" fill={stemColor} />
     </g>
   )
-  // Degradado para la maceta (bordes y brillo)
   const Pot = () => (
     <g transform="translate(0,8)">
       <defs>
@@ -95,18 +83,13 @@ export default function PlantAvatar({
           <stop offset="100%" stopColor={shade(potColor, 10)} />
         </linearGradient>
       </defs>
-      {/* Borde superior/ala de maceta */}
       <path d="M26 64 h68 c2 0 3 2 2 4 l-2 6 c-1 2-3 3-5 3 H31 c-2 0-4-1-5-3 l-2-6 c-1-2 0-4 2-4z" fill="url(#potShade)" stroke={shade(potColor, -25)} strokeWidth="2"/>
-      {/* Cuerpo de maceta redondeado */}
       <path d="M32 74 h56 c2 0 3 1 3 3 v20 c0 6-5 10-11 10 H40 c-6 0-11-4-11-10 V77 c0-2 1-3 3-3z" fill="url(#potShade)" stroke={shade(potColor, -25)} strokeWidth="2"/>
-      {/* Suelo */}
       <ellipse cx="60" cy="64" rx="28" ry="6" fill="#6b4f2a" opacity=".6"/>
-      {/* Carita con expresiones según el estado */}
       <Face mood={mood} />
     </g>
   )
 
-  // Hojas por tipo mejor definidas
   const Leaves = () => {
     const green = '#2e9d5f'
     const greenLight = '#53c27d'
@@ -171,7 +154,7 @@ export default function PlantAvatar({
             <circle cx="72" cy="50" r="6" fill="#f56565" />
           </g>
         )
-      default: // potus
+      default:
         return (
           <g>
             <ellipse cx="60" cy="42" rx="28" ry="16" fill={green} />
@@ -191,7 +174,6 @@ export default function PlantAvatar({
   )
 }
 
-// Utilidad simple para aclarar/oscurecer colores hex
 function shade(hex, percent) {
   const num = parseInt(hex.replace('#',''),16)
   let r = (num >> 16) + percent

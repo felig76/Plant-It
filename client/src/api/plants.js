@@ -1,7 +1,6 @@
 import api from './axios.js'
 
 export async function createPlant(payload) {
-  // payload must include: name, type, groundHumedity, airHumedity, lightExposure, temperature, batteryLevel, userId
   const { data } = await api.post('/api/plants/create', payload)
   return data
 }

@@ -3,7 +3,7 @@ import { create } from 'zustand'
 const usePlantStore = create((set) => ({
   plants: [],
   active: null,
-  meta: {}, // id -> { potColor, type }
+  meta: {},
   setPlants: (plants) => set({ plants }),
   setActive: (active) => set({ active }),
   addPlant: (plant) => set((s) => ({ plants: [plant, ...s.plants] })),
